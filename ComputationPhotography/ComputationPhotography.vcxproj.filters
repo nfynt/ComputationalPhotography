@@ -13,21 +13,27 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{7956698e-ebd0-4a90-9d7d-52e318dfd8d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TinyEXIF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyxml2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XMLParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MyData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml2.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="TinyEXIF.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="ExifReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,16 +44,22 @@
     <ClCompile Include="ComputationPhotography.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TinyEXIF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyxml2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="XMLParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MyData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TinyEXIF.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml2.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="ExifReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="panning.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

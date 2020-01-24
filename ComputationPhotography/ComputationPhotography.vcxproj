@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ExifReader.h" />
     <ClInclude Include="MyData.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="TinyEXIF.h" />
@@ -167,7 +168,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComputationPhotography.cpp" />
+    <ClCompile Include="ExifReader.cpp" />
     <ClCompile Include="MyData.cpp" />
+    <ClCompile Include="panning.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
