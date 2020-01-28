@@ -2,7 +2,7 @@
 //
 
 #include "pch.h"
-#include <iostream>]
+#include <iostream>
 #include <string>
 #include "opencv2/opencv.hpp"
 #include "opencv2/core.hpp"
@@ -14,10 +14,7 @@
 using namespace std;
 using namespace cv;
 
-string dataPath = "D:/UCL_coursework/ComputationalPhotography/ProjectFiles/Data/";
 Vec2i speed;
-XMLParser xml;
-ExifReader exifRead;
 
 //Mouse function binding for opencv windows
 void MouseFunc(int eve, int mouseX, int mouseY, int flags, void* params)
@@ -33,6 +30,10 @@ void MouseFunc(int eve, int mouseX, int mouseY, int flags, void* params)
 
 int Pan()
 {
+	string dataPath = "D:/UCL_coursework/ComputationalPhotography/ProjectFiles/Data/";
+	XMLParser xml;
+	ExifReader exifRead;
+
 	int fWidth, fHeight;
 	fWidth = fHeight = 400;
 	Rect frameRect = Rect(0, 0, fWidth, fHeight);

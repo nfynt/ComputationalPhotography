@@ -51,6 +51,20 @@ bool XMLParser::SerializeMyData(std::string filePath, MyData data)
 	return true;
 }
 
+bool XMLParser::SerializeCameraParams(std::string filePath, CameraParams params)
+{
+	cv::FileStorage fs(filePath, cv::FileStorage::WRITE);
+
+	fs << "intrinsic" << params.intrinsic;
+	fs << "distCoeffs" << params.distCoeffs;
+	fs << "rvecs" << params.rvecs;
+	fs << "tvecs" << params.tvecs;
+
+	fs.release();
+
+	return true;
+}
+
 bool XMLParser::DeserializeMyData(cv::String filePath, MyData& data)
 {
 	//Read
@@ -102,6 +116,28 @@ bool XMLParser::DeserializeMyData(cv::String filePath, MyData& data)
 	//cout << "Attempt to read NonExisting (should initialize the data structure with its default).";
 	//fs["NonExisting"] >> data;
 	//cout << endl << "NonExisting = " << endl << data << endl;
+	return true;
+}
+
+bool XMLParser::DeserializeCameraParams(cv::String filePath, CameraParams& params)
+{
+	cv::FileStorage fs;
+	fs.open(filePath, cv::FileStorage::READ);
+
+	if (!fs.isOpened())
+	{
+		cerr << "Failed to open " << filePath << endl;
+		return false;
+	}
+
+	fs["intrinsic"] >> params.intrinsic;
+	fs["distCoeffs"] >> params.distCoeffs;
+	fs["rvecs"] >> params.rvecs;
+	fs["tvecs"] >> params.tvecs;
+
+	cout << endl << params.intrinsic.at<double>(0, 0) << "\n" << params.intrinsic.at<float>(1, 1);
+
+	return true;
 }
 
 XMLParser::XMLParser()

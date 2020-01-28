@@ -36,6 +36,9 @@
     <ClInclude Include="ExifReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CameraParams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -60,6 +63,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="panning.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraParams.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraCaliberation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
