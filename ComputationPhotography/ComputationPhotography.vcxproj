@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CameraParams.h" />
+    <ClInclude Include="cw1.hpp" />
     <ClInclude Include="ExifReader.h" />
     <ClInclude Include="MyData.h" />
     <ClInclude Include="pch.h" />
