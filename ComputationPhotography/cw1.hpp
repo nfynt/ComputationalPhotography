@@ -71,6 +71,7 @@ void cw1::ApplyHistogramEqualization(Mat& srcImg, bool colorImage, bool adaptive
 	}
 }
 
+//Remove vertical line artifacts with 1D median filter
 void cw1::RemoveLineArtifacts(Mat& srcImg)
 {
 	long cols = srcImg.rows*srcImg.cols;
