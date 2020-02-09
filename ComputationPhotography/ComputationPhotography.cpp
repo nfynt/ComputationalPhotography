@@ -27,11 +27,16 @@ int main()
 	//cw1::TestCLAHE(dataPath + "footage_105.png", dataPath + "footage_105_clahe.jpg");
 
 	//median blur test
-	/*Mat img = imread(dataPath + "footage/footage_556.png", IMREAD_GRAYSCALE);
-	cw1::RemoveLineArtifacts(img);
-	imwrite(dataPath + "footage_556_line.png", img);
-	return 0;*/
+	//Mat img = imread(dataPath + "footage/footage_036.png", IMREAD_GRAYSCALE);
+	//Mat img = imread(dataPath + "test.jpg");
+	//cw1::RemoveLineArtifacts(img);
+	//img=cw1::homomorphic(img);
+	//GaussianBlur(img, img, Size(11, 11), 20);
+	//imwrite(dataPath + "footage_036_blur.png", img);
 
+	//return 0;
+
+	cw1::InitHomomorphicParams(360,476);
 	VideoCapture cap(dataPath + "source.avi");
 	Ptr<BackgroundSubtractor> pBackSubtractor;
 
@@ -42,9 +47,9 @@ int main()
 	int changeCnt = 0;
 	float changeThreshold = 20000;
 	
-	
 	//frames queue
 	int frameQueueSize = 3;
+	int frameAvgSize = 3;	//must be less than or equal to queue size
 	deque<Mat> frameQueue;
 
 	while (true)
@@ -52,46 +57,88 @@ int main()
 		cap >> frame;
 		if (frame.empty()) break;
 		frameCnt++;
-
+		//frame = imread("C:/Users/shubh/Documents/Python/OpenCVPython/Images/lenna2.png");
 		//Convert to grayscale
 		Mat frame_gray;
 		cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
 
-		//Global flicker correction
-		frameQueue.push_back(frame_gray);
-		//Frames averaging
+		Mat frame_gray_copy;
+		frame_gray.copyTo(frame_gray_copy);
+
+		frameQueue.push_back(frame_gray_copy);
+		
 		if (frameCnt > frameQueueSize) {
 			frameQueue.pop_front();
+		}
 			//cout << frameQueue.size() << endl;
+
+		//Task2: Global flicker correction
+		if(frameCnt>frameAvgSize)
+		{
+			//Frames averaging
 			Mat acc(frame_gray.size(),CV_32F,Scalar());
-			//for (frameIt=frameQueue.begin(); frameIt!=frameQueue.end(); ++frameIt)
-			for(int i=0;i<frameQueueSize;i++)
+			for (int i = 0; i < frameAvgSize; i++)
 			{
-				accumulate(frameQueue[i], acc);
+				accumulate(frameQueue[frameQueue.size() - i - 1], acc);
 			}
-			acc.convertTo(frame_gray, CV_8U, 1.0 / frameQueueSize);
+			acc.convertTo(frame_gray, CV_8U, 1.0 / frameAvgSize);
+			
+			//Histogram qualization
+			//cw1::ApplyHistogramEqualization(frame_gray,false,true);
+
+			//Mat m = cw1::homomorphic(frame_gray);
+			//imshow("Homomorphic filter (DST)", m);
 		}
 
-		//Scene Change detection algo
+		//Output for global flicker sample
+		//if (frameCnt == 46) 
+			//imwrite(dataPath + "footage_046_corr.png", frame_gray);
+
+
+		//Task1: Scene Change detection algo
 		pBackSubtractor->apply(frame, fgMask);
 
 		if (countNonZero(fgMask) > changeThreshold)
 		{
 			changeCnt++;
 			cout << "Scene change" << frameCnt << ";  change-" << countNonZero(fgMask) << endl;
-		}
 
+			//putText(frame, "Scene: " + to_string(changeCnt), Point(10, 50), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 1);
+			//imwrite(dataPath + "footage_change" + to_string(changeCnt) + ".png", frame);
+		}
 		putText(frame, "Scene: " + to_string(changeCnt), Point(10, 50), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 1);
 
-		//Use vertical line correction only for 3rd scene
+
+		//Task3: Blotch detection and correction
+		//Do the correction for scene 1 & 2 only
+		if (frameCnt > frameQueueSize && changeCnt < 3)
+		{
+			cw1::CorrectBlotches(frameQueue[frameQueueSize - 1], frameQueue[frameQueueSize - 2], frame_gray);
+		}
+
+		//Output for blotch detection and inpainting
+		//if (frameCnt == 34)
+			//imwrite(dataPath + "footage_034_inpaint.png", frame_gray);
+
+
+		//Task4: Use vertical line correction only for 3rd scene
 		if (changeCnt == 3) {
 			cw1::RemoveLineArtifacts(frame_gray);
 			//imshow("Median blur", m);
 		}
+
+		//output line artefact correction
+		//if (frameCnt == 556)
+			//imwrite(dataPath + "footage_line_" + to_string(frameCnt) + ".png", frame_gray);
+
+		//Task5: Camera shake correction
+		if (frameCnt > frameQueueSize && changeCnt<3) {
+			cw1::GetStabilizedFrame(frame_gray, frameQueue[frameQueueSize - 2], frame_gray, frame, false);
+		}
+
 		imshow("Processed video", frame_gray);
-		imshow("Video", frame);
-		//imshow("Flicker correction", frame_gray);
-		char c = (char)waitKey(25);
+		imshow("Original", frame);
+		char c = (char)waitKey(20);
 		if (c == 27)
 		{
 			cout << "\nEscape key pressed" << endl;
