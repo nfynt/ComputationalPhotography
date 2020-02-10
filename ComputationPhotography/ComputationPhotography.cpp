@@ -39,6 +39,11 @@ int main()
 	cw1::InitHomomorphicParams(360,476);
 	VideoCapture cap(dataPath + "source.avi");
 	Ptr<BackgroundSubtractor> pBackSubtractor;
+	
+	//Record params
+	bool record = true;
+	string savePath = dataPath + "processed.mp4";
+	VideoWriter videoWrite(savePath, VideoWriter::fourcc('x', '2', '6', '4'), 30, Size(476, 360));
 
 	pBackSubtractor = createBackgroundSubtractorMOG2(10, 400, false);
 
@@ -48,7 +53,7 @@ int main()
 	float changeThreshold = 20000;
 	
 	//frames queue
-	int frameQueueSize = 3;
+	int frameQueueSize = 5;
 	int frameAvgSize = 3;	//must be less than or equal to queue size
 	deque<Mat> frameQueue;
 
@@ -107,13 +112,21 @@ int main()
 			//imwrite(dataPath + "footage_change" + to_string(changeCnt) + ".png", frame);
 		}
 		putText(frame, "Scene: " + to_string(changeCnt), Point(10, 50), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 1);
-
+		//putText(frame_gray, "Scene: " + to_string(changeCnt), Point(10, 50), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 1);
 
 		//Task3: Blotch detection and correction
 		//Do the correction for scene 1 & 2 only
 		if (frameCnt > frameQueueSize && changeCnt < 3)
 		{
-			cw1::CorrectBlotches(frameQueue[frameQueueSize - 1], frameQueue[frameQueueSize - 2], frame_gray);
+			//Mat acc(frame_gray.size(), CV_32F, Scalar());
+			//for (int i = 0; i < 3; i++)
+			//{
+			//	accumulate(frameQueue[frameQueue.size() - i - 1], acc);
+			//}
+			Mat diff;
+			//acc.convertTo(diff, CV_8U, 1.0 / 3);
+			diff = frameQueue[frameQueueSize - 1] - frameQueue[frameQueueSize - 2];
+			//cw1::CorrectBlotches(frameQueue[frameQueueSize - 1], frameQueue[frameQueueSize - 2], frame_gray, diff);
 		}
 
 		//Output for blotch detection and inpainting
@@ -133,11 +146,20 @@ int main()
 
 		//Task5: Camera shake correction
 		if (frameCnt > frameQueueSize && changeCnt<3) {
-			cw1::GetStabilizedFrame(frame_gray, frameQueue[frameQueueSize - 2], frame_gray, frame, false);
+			cw1::GetStabilizedFrame(frame_gray, frameQueue[frameQueueSize-2], frame_gray, frame, false);
 		}
+
+		putText(frame_gray, "Scene: " + to_string(changeCnt), Point(10, 50), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 1);
 
 		imshow("Processed video", frame_gray);
 		imshow("Original", frame);
+
+		if (record)
+		{
+			cvtColor(frame_gray, frame_gray, COLOR_GRAY2BGR);
+			videoWrite.write(frame_gray);
+		}
+
 		char c = (char)waitKey(20);
 		if (c == 27)
 		{
@@ -145,6 +167,8 @@ int main()
 			break;
 		}
 	}
+
+	videoWrite.release();
 	cap.release();
 	return 0;
 }

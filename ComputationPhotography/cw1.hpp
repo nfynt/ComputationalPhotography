@@ -19,7 +19,7 @@ namespace cw1 {
 	cv::Mat homomorphic(const cv::Mat &src, bool isGray=true);
 	cv::Mat butterworth(const cv::Mat &img, int d0, int n, int high, int low);
 	//void ApplyHomomorphicFilter(Mat& srcImg);
-	void CorrectBlotches(Mat prevFrame, Mat currFrame, Mat& outImg);
+	void CorrectBlotches(Mat prevFrame, Mat currFrame, Mat& outImg, Mat& diff);
 	void ApplyHistogramEqualization(Mat& srcImg, bool colorImage = false, bool adaptive = false);
 	bool TestCLAHE(string srcPath, string savePath);
 	void RemoveLineArtifacts(Mat& srcImg);
@@ -28,20 +28,24 @@ namespace cw1 {
 	void GetStabilizedFrame(Mat currImg, Mat prevImg, Mat& outStabilizedImg, Mat& colImg, bool test);
 }
 
-void cw1::CorrectBlotches(Mat prevFrame, Mat currFrame, Mat& outImg)
+void cw1::CorrectBlotches(Mat prevFrame, Mat currFrame, Mat& outImg, Mat& diff)
 {
 	Mat img1, img2;
 	prevFrame.copyTo(img1);
 	currFrame.copyTo(img2);
+	//medianBlur(img1, img1, 5);
+	//medianBlur(img2, img2, 5);
+	GaussianBlur(img1, img1, Size(5, 5), 1.2);
+	GaussianBlur(img2, img2, Size(5, 5), 1.2);
+	//Mat diff = img2 - img1;
 
-	Mat diff = img2 - img1;
+	//imshow("Diff", diff);
+	threshold(diff, diff, 60, 255, THRESH_BINARY);
 
-	imshow("Diff", diff);
-	threshold(diff, diff, 70, 255, THRESH_BINARY);
-
-	imshow("Diff_Th", diff);
+	//imshow("Diff_Th", diff);
 	Mat motion;// type-CV_32FC2
-	calcOpticalFlowFarneback(img1, img2, motion, 0.5, 3, 20, 5, 5, 1.2, 0);
+	//pyr_scale, pyr_level,winsize,iteration,poly_n,poly_sigma
+	calcOpticalFlowFarneback(img1, img2, motion, 0.5, 3, 15, 3, 5, 1.2, 0);
 	
 	//Viz
 	Mat motionC[2], mag, ang;
@@ -59,18 +63,20 @@ void cw1::CorrectBlotches(Mat prevFrame, Mat currFrame, Mat& outImg)
 	
 	threshold(motion, motion, 10, 255, THRESH_BINARY);
 
-	dilate(motion, motion, Mat::ones(5, 5, CV_8UC1));
+	dilate(motion, motion, Mat::ones(3, 3, CV_8UC1));
+
+	//imshow("Motion", motion);
 
 	diff = diff - motion;
 	//imwrite(dataPath + "footage_033_mask_o.png", diff);
 
-	erode(diff, diff, Mat::ones(5, 5, CV_8UC1));
+	//erode(diff, diff, Mat::ones(3, 3, CV_8UC1));
 	dilate(diff, diff, Mat::ones(17, 17, CV_8UC1));
 
-	imshow("Blotches", diff);
+	//imshow("Blotches", diff);
 
 	Mat paint;
-	inpaint(img2, diff, paint, 20, INPAINT_NS);
+	inpaint(outImg, diff, paint, 20, INPAINT_NS);
 	
 	paint.copyTo(outImg);
 }
@@ -284,7 +290,7 @@ bool cw1::ConvertFramesToVideo(string framesPath, string videoPath, int fps)
 	int fWidth = 476;
 	int fHeight = 360;
 
-	VideoWriter video(videoPath, VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, Size(fWidth, fHeight));
+	VideoWriter video(videoPath, VideoWriter::fourcc('x', '2', '6', '4'), fps, Size(fWidth, fHeight));
 
 	for (const auto & entry : filesystem::directory_iterator(framesPath))
 	{
@@ -323,6 +329,7 @@ void cw1::ApplyGammaCorrection(Mat& srcImg, float gamma)
 
 //Digital video stabilization
 //motion estimation -> motion smoothing -> image composition
+//ref: https://www.learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
 void cw1::GetStabilizedFrame(Mat currImg, Mat prevImg, Mat& outStabilizedImg, Mat& colImg, bool test)
 {
 	vector<Point2f> features1, features2;
@@ -333,7 +340,7 @@ void cw1::GetStabilizedFrame(Mat currImg, Mat prevImg, Mat& outStabilizedImg, Ma
 	Mat stabilized;
 
 	//Find features in curr and prev Image
-	goodFeaturesToTrack(currImg, features1, 200, 0.1, 30);
+	goodFeaturesToTrack(prevImg, features1, 200, 0.1, 30);
 	calcOpticalFlowPyrLK(prevImg, currImg, features1, features2, status, err);
 
 	for (int i = 0; i < status.size(); i++)
@@ -362,14 +369,21 @@ void cw1::GetStabilizedFrame(Mat currImg, Mat prevImg, Mat& outStabilizedImg, Ma
 	//scale, angle and translation
 	Mat affine = estimateAffine2D(goodFeatures1, goodFeatures2);
 
+	//In case no transform was found
+	if (affine.data == NULL) {
+		return;
+	}
+
 	/*TransformParam tp;
 	tp.dx = affine.at<double>(0, 2);
 	tp.dy = affine.at<double>(1, 2);
 	tp.da = atan2(affine.at<double>(1, 0), affine.at<double>(0, 0));*/
 
 	//warpAffine(currImg, stabilized, affine, currImg.size());
-	warpAffine(outStabilizedImg, outStabilizedImg, affine, currImg.size());
-	//stabilized.copyTo(outImg);
+	
+	//apply the transform to current frame
+	warpAffine(outStabilizedImg, outStabilizedImg, affine, currImg.size(), WARP_INVERSE_MAP, BORDER_DEFAULT);
+	
 }
 
 struct TransformParam
